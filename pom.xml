@@ -107,7 +107,7 @@
   </issueManagement>
 
   <properties>
-    <mojo.java.target>1.7</mojo.java.target>
+    <mojo.java.target>1.8</mojo.java.target>
 
     <mavenVersion>2.2.1</mavenVersion>
     <wagonVersion>3.4.0</wagonVersion>
