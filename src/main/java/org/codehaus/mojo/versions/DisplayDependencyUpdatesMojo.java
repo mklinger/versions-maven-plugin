@@ -101,8 +101,7 @@ public class DisplayDependencyUpdatesMojo
 
     /**
      * Whether to allow the major version number to be changed.
-     * You need to set {@link #allowAnyUpdates} to <code>false</code> to
-     * get this configuration gets control. 
+     * 
      * @since 2.5
      */
     @Parameter(property = "allowMajorUpdates", defaultValue = "true")
@@ -110,8 +109,6 @@ public class DisplayDependencyUpdatesMojo
 
     /**
      * Whether to allow the minor version number to be changed.
-     * You need to set {@link #allowMajorUpdates} to <code>false</code> to
-     * get this configuration gets control. 
      *
      * @since 2.5
      */
@@ -120,13 +117,19 @@ public class DisplayDependencyUpdatesMojo
 
     /**
      * Whether to allow the incremental version number to be changed.
-     * You need to set {@link #allowMinorUpdates} to <code>false</code> to
-     * get this configuration gets control. 
      *
      * @since 2.5
      */
     @Parameter(property = "allowIncrementalUpdates", defaultValue = "true")
     private boolean allowIncrementalUpdates;
+
+    /**
+     * Whether to allow the sub-incremental version number to be changed.
+     *
+     * @since 2.9
+     */
+    @Parameter(property = "allowSubIncrementalUpdates", defaultValue = "true")
+    private boolean allowSubIncrementalUpdates;
 
     /**
      * Whether to allow any version change to be allowed. This keeps
@@ -368,26 +371,27 @@ public class DisplayDependencyUpdatesMojo
     private UpdateScope calculateUpdateScope()
     {
         UpdateScope result = UpdateScope.ANY;
+        
         if ( !allowAnyUpdates )
         {
+        	List<UpdateScope> chainedScopes = new ArrayList<>();
             if ( allowMajorUpdates )
             {
-                result = UpdateScope.MAJOR;
+            	chainedScopes.add(UpdateScope.MAJOR);
             }
-            else
+            if ( allowMinorUpdates )
             {
-                if ( allowMinorUpdates )
-                {
-                    result = UpdateScope.MINOR;
-                }
-                else
-                {
-                    if ( allowIncrementalUpdates )
-                    {
-                        result = UpdateScope.INCREMENTAL;
-                    }
-                }
+            	chainedScopes.add(UpdateScope.MINOR);
             }
+            if ( allowIncrementalUpdates )
+            {
+            	chainedScopes.add(UpdateScope.INCREMENTAL);
+            }
+            if ( allowSubIncrementalUpdates )
+            {
+            	chainedScopes.add(UpdateScope.SUBINCREMENTAL);
+            }
+            result = new UpdateScope.ChainedNewestUpdateScope(chainedScopes.toArray(new UpdateScope[0]));
         }
         return result;
     }

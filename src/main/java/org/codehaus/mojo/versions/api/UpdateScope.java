@@ -24,9 +24,7 @@ import java.io.Serializable;
 import java.io.StreamCorruptedException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.codehaus.mojo.versions.ordering.VersionComparator;
 
@@ -238,6 +236,43 @@ public abstract class UpdateScope
         }
 
     };
+
+    public static class ChainedNewestUpdateScope extends UpdateScope {
+    	private UpdateScope[] chain;
+
+		public ChainedNewestUpdateScope(UpdateScope... chain) {
+    		super("CHAINED", -1);
+    		this.chain = chain;
+    	}
+
+		@Override
+		public ArtifactVersion getNewestUpdate(VersionDetails versionDetails, ArtifactVersion currentVersion,
+				boolean includeSnapshots) 
+		{
+			for (UpdateScope updateScope : chain) {
+				ArtifactVersion update = updateScope.getNewestUpdate(versionDetails, currentVersion, includeSnapshots);
+				if (update != null) {
+					return update;
+				}
+			}
+			return null;
+		}
+
+		@Override
+		public ArtifactVersion getOldestUpdate(VersionDetails versionDetails, ArtifactVersion currentVersion,
+				boolean includeSnapshots) 
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public ArtifactVersion[] getAllUpdates(VersionDetails versionDetails, ArtifactVersion currentVersion,
+				boolean includeSnapshots) 
+		{
+			throw new UnsupportedOperationException();
+		}
+    }
+    
 
     /**
      * Returns the next version after the specified current version within this scope.
