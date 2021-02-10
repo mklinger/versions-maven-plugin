@@ -132,18 +132,6 @@ public class DisplayDependencyUpdatesMojo
     private boolean allowSubIncrementalUpdates;
 
     /**
-     * Whether to allow any version change to be allowed. This keeps
-     * compatibility with previous versions of the plugin.
-     * If you set this to false you can control changes in version
-     * number by {@link #allowMajorUpdates}, {@link #allowMinorUpdates} or
-     * {@link #allowIncrementalUpdates}.
-     * @deprecated This will be removed with version 3.0.0
-     * @since 2.5
-     */
-    @Parameter(property = "allowAnyUpdates", defaultValue = "true")
-    private boolean allowAnyUpdates;
-
-    /**
      * Whether to show additional information such as dependencies that do not need updating. Defaults to false.
      *
      * @since 2.1
@@ -370,30 +358,24 @@ public class DisplayDependencyUpdatesMojo
 
     private UpdateScope calculateUpdateScope()
     {
-        UpdateScope result = UpdateScope.ANY;
-        
-        if ( !allowAnyUpdates )
+    	List<UpdateScope> chainedScopes = new ArrayList<>();
+        if ( allowMajorUpdates )
         {
-        	List<UpdateScope> chainedScopes = new ArrayList<>();
-            if ( allowMajorUpdates )
-            {
-            	chainedScopes.add(UpdateScope.MAJOR);
-            }
-            if ( allowMinorUpdates )
-            {
-            	chainedScopes.add(UpdateScope.MINOR);
-            }
-            if ( allowIncrementalUpdates )
-            {
-            	chainedScopes.add(UpdateScope.INCREMENTAL);
-            }
-            if ( allowSubIncrementalUpdates )
-            {
-            	chainedScopes.add(UpdateScope.SUBINCREMENTAL);
-            }
-            result = new UpdateScope.ChainedNewestUpdateScope(chainedScopes.toArray(new UpdateScope[0]));
+        	chainedScopes.add(UpdateScope.MAJOR);
         }
-        return result;
+        if ( allowMinorUpdates )
+        {
+        	chainedScopes.add(UpdateScope.MINOR);
+        }
+        if ( allowIncrementalUpdates )
+        {
+        	chainedScopes.add(UpdateScope.INCREMENTAL);
+        }
+        if ( allowSubIncrementalUpdates )
+        {
+        	chainedScopes.add(UpdateScope.SUBINCREMENTAL);
+        }
+        return new UpdateScope.ChainedNewestUpdateScope(chainedScopes.toArray(new UpdateScope[0]));
     }
 
     private void logUpdates( Map<Dependency, ArtifactVersions> updates, String section )
